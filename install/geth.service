@@ -1,0 +1,21 @@
+[Unit]
+Description=geth Ethereum node
+Documentation=https://geth.ethereum.org/docs/
+Requires=network.target remote-fs.target
+After=network.target remote-fs.target 
+
+[Service]
+User=geth
+ExecStart=/home/geth/bin/geth --dev \
+    --datadir=/home/geth/.ethereum \
+    --http \
+    --http.api="eth" \
+    --http.addr=0.0.0.0 \
+    --http.vhosts="*" \
+    --http.corsdomain="*"
+Restart=on-failure
+RestartSec=5
+
+
+[Install]
+WantedBy=multi-user.target
