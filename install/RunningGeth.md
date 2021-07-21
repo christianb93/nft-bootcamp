@@ -86,15 +86,7 @@ to = "0xFC2a2b9A68514E3315f0Bd2a29e900DC1a815a1D";
 web3.eth.sendTransaction({"from": dev, "to": to, "value": web3.toWei(10000, "ether")});
 ```
 
-This should now work again. I tend to lock the dev account unless I plan a transfer, just to make sure that tests using only HTTP cannot be accident access the account. An easy way to do this is to use the `--exec` flag of geth. I have written a little Python script that sets up a set of accounts with a minimum balance, so to unlock, run the script and lock, you could do something like
-
-```
-geth attach ~/.ethereum/geth.ipc --exec 'personal.unlockAccount(eth.accounts[0], "")'
-python3 install/GethSetup.py
-geth attach ~/.ethereum/geth.ipc --exec 'personal.lockAccount(eth.accounts[0])'
-```
-
-Note that by default, geth does not allow you to unlock a previously locked account while the HTTP API is active (which is not yet the case in our setup), as an additional safeguard.
+This should now work again. Note that by default, geth does not allow you to unlock a previously locked account while the HTTP API is active (which is not yet the case in our setup), as an additional safeguard. Unfortunately, in dev mode, the miner needs access to the private key for the etherbase account (*accounts[0]*), so you need to keep this account unlocked in order to seal a block. In a more realistic setup, you would probably a mining node which does not allow RPC connections over HTTP (which would allow anybody to access the etherbase account), and serve RPC requests from a dedicated node.
 
 So far we have used the IPC endpoint only. For most applications, however, we want to enable the HTTP endpoint. We also need to enable CORS and might want to restrict to only the eth API, so that in particular the personal API and the admin API are not enabled. Here is the command to do this.
 
@@ -163,16 +155,16 @@ To summarize, here is what we need to do to install geth from scratch, set up ac
 
 ```
 # Create new user
-sudo adduser --system --group --disabled-login geth
+sudo adduser  --disabled-login geth
 cd /home/geth
-sudo -s -u geth
+sudo -i -u geth
 # Download and install geth binary
 cd
 wget https://gethstore.blob.core.windows.net/builds/geth-linux-386-1.10.5-33ca98ec.tar.gz
 gzip -d geth-linux-386-1.10.5-33ca98ec.tar.gz
 tar -xvf  geth-linux-386-1.10.5-33ca98ec.tar
 mkdir bin
-cp geth-linux-386-1.10.5-33ca98ec/geth ~/bin/
+cp geth-linux-386-1.10.5-33ca98ec/geth bin/
 chmod 700 bin/geth
 # Clone this repository
 git clone https://github.com/christianb93/nft-bootcamp.git
@@ -185,12 +177,14 @@ sudo systemctl start geth
 sudo systemctl status geth
 # Inspect log output. If everything looks good, enable so that it is restarted and proceed
 sudo systemctl enable geth
-sudo -s -u geth
+sudo -i -u geth
 cd nft-bootcamp
 pip3 install web3
 pip3 install py-solc-x
 python3 -m solcx.install v0.8.6
 python3 install/GethSetup.py
-geth attach ~/.ethereum/geth.ipc --exec 'personal.lockAccount(eth.accounts[0])'
 python3 install/deployAndMintNFT.py
 ```
+
+
+
