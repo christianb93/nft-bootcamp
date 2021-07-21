@@ -9,7 +9,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source",
                     type=str, 
-                    default="ERC721/contracts/NFT.sol",
+                    default="contracts/NFT.sol",
                     help="Location of source file")
     parser.add_argument("--contract",
                     type=str, 
