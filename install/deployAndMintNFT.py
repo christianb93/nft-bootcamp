@@ -34,7 +34,7 @@ def get_args():
     parser.add_argument("--gas",
                     type=int,
                     default=3000000,
-                    help="Gas limit in wei for the deployment");                 
+                    help="Gas limit for the deployment");                 
     args=parser.parse_args()
     return args
 
@@ -146,7 +146,7 @@ print("This worked, I will now mint a few token");
 # Now mint five token
 #
 for i in range(1,6):
-    txn = c.functions._mint(i).buildTransaction({"from": args.owner});
+    txn = c.functions._mint(i).buildTransaction({"from": args.owner, "gas": 100000});
     txn_receipt = sign_and_submit(txn, args.owner, args.key);
     # Check that this worked
     ownerOf = c.functions.ownerOf(i).call();
