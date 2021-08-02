@@ -19,13 +19,13 @@ contract NFT {
     event Transfer(
         address indexed from,
         address indexed to,
-        uint256 tokenID
+        uint256 indexed tokenID
     );
 
     event Approval(
         address indexed owner,
         address indexed spender,
-        uint256 tokenID
+        uint256 indexed tokenID
     );
 
     event ApprovalForAll(
