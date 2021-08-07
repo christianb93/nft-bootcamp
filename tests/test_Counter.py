@@ -2,7 +2,6 @@ import pytest;
 
 
 from brownie import Counter, accounts, exceptions;
-from brownie import web3 as bweb3;
 
 #
 # These tests are meant to be executed with brownie. To run them:
