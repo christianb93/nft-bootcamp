@@ -62,6 +62,9 @@ def assemble_spec(source):
             }
         },
         "settings": {
+            "optimizer": {
+                "enabled": True
+            },
             "outputSelection": {
                 "*": {
                     "*": [
