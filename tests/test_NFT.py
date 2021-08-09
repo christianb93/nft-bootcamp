@@ -1,8 +1,8 @@
 import pytest;
 import hexbytes;
+import brownie;
 
 from brownie import NFT, ERC721TokenReceiverImplementation, accounts, exceptions;
-from brownie import web3 as bweb3;
 
 #
 # These tests are meant to be executed with brownie. To run them:
@@ -64,7 +64,7 @@ def test_balanceOfZeroAddress(token):
     # This should raise an error. Note that we need to provide an address with
     # 40 hex digits, as otherwise the web3 ABI encoder treats the argument as a string
     # and is not able to find the matching ABI entry
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Address 0 is not valid"):
         balance = token.balanceOf("0x"+"0"*40);
 
 #
@@ -105,7 +105,7 @@ def test_mint_notOwner(token):
     # Make sure that token does not yet exist
     token._burn(tokenID, {"from": me});
     # Try to mint
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Only owner can mint"):
         token._mint(tokenID, {"from": bob});
 
 #
@@ -117,7 +117,7 @@ def test_mint_tokenExists(token):
     tokenID = 1;
     _ensureToken(token, tokenID, me);
     # Try to mint
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Token already exists"):
         token._mint(tokenID, {"from": me});
 
 
@@ -145,7 +145,7 @@ def test_burn_notOwner(token):
     tokenID = 1;
     _ensureToken(token, tokenID, me);
     # Try to burn
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Only owner can burn token"):
         token._burn(tokenID, {"from": bob});
 
 #
@@ -156,7 +156,7 @@ def test_ownerOf_invalidTokenID(token):
     tokenID = 1;
     token._burn(tokenID, {"from": me});
     # Try to call ownerOf
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("This token does not exist"):
         token.ownerOf(tokenID);
 
 
@@ -193,7 +193,7 @@ def test_transferFrom_notOwner(token):
     tokenID = 1;
     _ensureToken(token, tokenID, me);
     # Now do the transfer
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("From not current owner"):
         token.transferFrom(bob, alice, tokenID,{"from": bob});
 
 #
@@ -204,7 +204,7 @@ def test_transferFrom_toZeroAddress(token):
     tokenID = 1;
     _ensureToken(token, tokenID, me);
     # Now do the transfer
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Cannot send to zero address"):
         token.transferFrom(me, "0x"+40*"0", tokenID, {"from": me});
 
 #
@@ -216,7 +216,7 @@ def test_transferFrom_invalidTokenID(token):
     tokenID = 1;
     token._burn(tokenID, {"from": me});
     # Now do the transfer
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Invalid token ID"):
         token.transferFrom(me, alice, tokenID, {"from": me});
 
 #
@@ -229,7 +229,7 @@ def test_transferFrom_notAuthorized(token):
     tokenID = 1;
     _ensureToken(token, tokenID, me);
     # Now do the transfer
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Sender not authorized"):
         token.transferFrom(me, alice, tokenID, {"from": bob});
 
 #
@@ -265,7 +265,7 @@ def test_safeTransferFrom_notOwner(token):
     tokenID = 1;
     _ensureToken(token, tokenID, me);
     # Now do the transfer
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("From not current owner"):
         token.safeTransferFrom(bob, alice, tokenID, hexbytes.HexBytes(""), {"from": bob});
 
 #
@@ -276,7 +276,7 @@ def test_safeTransferFrom_toZeroAddress(token):
     tokenID = 1;
     _ensureToken(token, tokenID, me);
     # Now do the transfer
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Cannot send to zero address"):
         token.safeTransferFrom(me, "0x"+40*"0", tokenID, hexbytes.HexBytes(""), {"from": me});
 
 #
@@ -289,7 +289,7 @@ def test_safeTransferFrom_toZeroAddress(token):
     # Make sure that token does not exist
     token._burn(tokenID, {"from": me});
     # Now do the transfer
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Invalid token ID"):
         token.safeTransferFrom(me, alice, tokenID, hexbytes.HexBytes(""), {"from": me});
 
 #
@@ -302,7 +302,7 @@ def test_safeTransferFrom_notAuthorized(token):
     tokenID = 1;
     _ensureToken(token, tokenID, me);
     # Now do the transfer
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Sender not authorized"):
         token.safeTransferFrom(me, alice, tokenID, hexbytes.HexBytes(""), {"from": bob});
 
 #
@@ -344,7 +344,7 @@ def test_safeTransferFrom_wrongMagicValue(token, tokenReceiver):
     # Make sure that the contract returns the wrong magic value
     tokenReceiver.setReturnCorrectValue(False);
     # Now do the transfer
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("onERC721Received did not return expected value"):
         token.safeTransferFrom(me, tokenReceiver.address, tokenID, hexbytes.HexBytes(""), {"from": me});
     # Reset behaviour of test contract
     tokenReceiver.setReturnCorrectValue(True);
@@ -386,7 +386,7 @@ def test_approval_notAuthorized(token):
     alice = accounts[1];
     tokenID = 1;
     _ensureToken(token, tokenID, me);
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Sender not authorized"):
         token.approve(alice, tokenID, {"from": alice});
 
 #
@@ -426,10 +426,10 @@ def test_approval(token):
     # Make sure that token does not yet exist
     token._burn(tokenID);
     # Get approval - should raise
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Invalid tokenID"):
         token.getApproved(tokenID);
     # Approve - should raise
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Invalid tokenID"):
         token.approve(bob, tokenID, {"from": me});
     # Mint
     token._mint(tokenID, {"from": me});
@@ -503,7 +503,7 @@ def test_approval_authorization(token):
     tokenID = 1;
     _ensureToken(token, tokenID, me);
     # Try to approve for bob while not being owner or operator - this should raise an exception
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Sender not authorized"):
         token.approve(bob, tokenID, {"from": alice});
     # Now make alice an operator for me
     token.setApprovalForAll(alice, True, {"from": me});
@@ -573,7 +573,7 @@ def test_tokenURI(token):
     # Make sure that token does not yet exist
     token._burn(tokenID, {"from": me});
     # Try to get tokenURI of invalid token - should raise exception
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Not a valid token ID"):
         token.tokenURI(tokenID);
     # Mint
     token._mint(tokenID, {"from": me});
@@ -592,7 +592,7 @@ def test_tokenURI_idzero(token):
     # Make sure that token does not yet exist
     token._burn(tokenID, {"from": me});
     # Try to get tokenURI of invalid token - should raise exception
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Not a valid token ID"):
         token.tokenURI(tokenID);
     # Mint
     token._mint(tokenID, {"from": me});
@@ -603,5 +603,4 @@ def test_tokenURI_idzero(token):
     assert(baseURI + "0" == tokenURI);
 
 
-# Potentially missing test:
-# approve invalid tokenId
+
