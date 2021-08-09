@@ -1,4 +1,5 @@
 import pytest;
+import brownie;
 
 from brownie import Token, accounts, exceptions;
 
@@ -76,7 +77,7 @@ def test_transfer_insufficientFunds(token):
     oldBalanceAlice = token.balanceOf(alice.address);
     oldBalanceMe = token.balanceOf(me.address);
     value = oldBalanceMe + 1;
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Insufficient balance"):
         token.transfer(alice.address, value, {"from": me.address});
 
 # Test an unauthorized transferFrom
@@ -87,7 +88,7 @@ def test_transferFrom_notAuthorized(token):
     oldBalanceAlice = token.balanceOf(alice.address);
     oldBalanceMe = token.balanceOf(me.address);
     value = oldBalanceMe + 1;
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Transfer not authorized"):
         token.transferFrom(me.address, alice.address, value, {"from": bob.address});
 
 # Test approval
@@ -152,7 +153,7 @@ def test_transferFrom_insufficientAllowance(token):
     value = 100;
     # Authorize bob
     token.approve(bob.address, value - 10);
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Transfer not authorized"):
         token.transferFrom(me.address, alice.address, value, {"from": bob.address});
 
 # Test an invalid withdrawal - balance not sufficient
@@ -164,5 +165,5 @@ def test_transferFrom_insufficientBalance(token):
     value = oldBalanceMe + 1;
     # Authorize bob
     token.approve(bob.address, value);
-    with pytest.raises(exceptions.VirtualMachineError):
+    with brownie.reverts("Insufficient balance"):
         token.transferFrom(me.address, alice.address, value, {"from": bob.address});
