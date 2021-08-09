@@ -33,7 +33,7 @@ contract Token {
     uint256 _totalSupply = 100000;
     address _contractOwner;
 
-    mapping(address => uint256) _balances;
+    mapping(address => uint256) private _balances;
     mapping (address => mapping (address => uint256)) private _allowance;
 
     /**
