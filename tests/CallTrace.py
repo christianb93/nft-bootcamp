@@ -83,7 +83,11 @@ args = get_args();
 
 # The source code for the test contracts. The following contracts are involved
 # Echo - this contract has a single method that simply returns its own argument
-# Root - this contract starts the call chain. It first invokes the Echo contract
+# Child - this contract invokes the Echo contract in its constructor
+# Root - this contract starts the call chain. It first invokes the Echo contract directly. 
+#        It then creates a copy of the Child contract which in its constructor should again call 
+#        the Echo contract
+#
 source = """
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
@@ -94,11 +98,34 @@ contract Echo {
 }
 contract Root {
     Echo echoInstance;
+    Child childInstance;
+    address owner;
     constructor(address _echo) {
         echoInstance = Echo(_echo);
+        owner = msg.sender;
+    }
+    function run(uint256 _value) public {
+        // Make a direct echo call
+        echoInstance.echo(_value);
+        // Now create a copy of the Child contract
+        childInstance = new Child(echoInstance);
+        // and call it 
+        childInstance.run(_value+1);
+        // finally self-destruct
+        selfdestruct(payable(owner));
+    }
+}
+contract Child {
+    event ChildCreated();
+
+    Echo echoInstance;
+    constructor(Echo _echo) {
+        require(_echo.echo(5) == 5, "Echo did not return expected value");
+        echoInstance = _echo;
+        emit ChildCreated();
     }
     function run(uint256 _value) public returns (uint256) {
-        return echoInstance.echo(_value);
+        return(echoInstance.echo(_value));
     }
 }
 """
@@ -134,16 +161,13 @@ contract_addresses["Root"] = deploy(abi, bytecode, w3, args.owner, args.gas, ech
 
 print("Deployed Root contract at address", contract_addresses['Root']);
 
-#
-# Again, let us run a short test
-#
-root = w3.eth.contract(address=contract_addresses['Root'], abi=abi);
-assert(100 ==  root.functions.run(100).call());
+
 
 #
 # Run a transaction
 #
 print("Now invoking the run() method as a transaction");
+root = w3.eth.contract(address=contract_addresses['Root'], abi=abi);
 txn_hash = root.functions.run(100).transact({"from": args.owner});
 txn_receipt = w3.eth.wait_for_transaction_receipt(txn_hash);
 if (txn_receipt['status'] == 1):
@@ -151,6 +175,11 @@ if (txn_receipt['status'] == 1):
 else:
     print("Something went wrong, full receipt: ", txn_receipt);
     exit(1);
+
+#
+# Figure out the address of the child
+#
+print("Child has been created at", txn_receipt['logs'][0]['address']);
 
 #
 # Now let us get a trace
