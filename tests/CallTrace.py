@@ -18,6 +18,10 @@ def get_args():
                     # This is the geth default coinbase address
                     default="0xd489f87665ed713E602290BE7c01269Fc129f4Ea",
                     help="Address of contract owner (needs to be a node-managed account");
+    parser.add_argument("--tracer",
+                    type=str,
+                    default="callTracer",
+                    help="Tracer to use");
     parser.add_argument("--gas",
                     type=int,
                     default=3000000,
@@ -186,5 +190,5 @@ print("Child has been created at", txn_receipt['logs'][0]['address']);
 #
 block_number =txn_receipt['blockNumber'];
 response = w3.manager.request_blocking(method="debug_traceBlockByNumber", 
-                                        params=[hex(block_number), {"Tracer": "callTracer"}]);
+                                        params=[hex(block_number), {"Tracer": args.tracer}]);
 print(json.dumps(response, indent=4));
