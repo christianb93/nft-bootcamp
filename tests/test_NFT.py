@@ -309,6 +309,7 @@ def test_safeTransferFrom_notAuthorized(token):
 # Test a valid safe transfer to a contract returning the proper magic value
 #
 def test_safeTransferFrom(token, tokenReceiver):
+    data = "0x1234";
     me = accounts[0];
     tokenID = 1;
     _ensureToken(token, tokenID, me);
@@ -320,7 +321,7 @@ def test_safeTransferFrom(token, tokenReceiver):
     # Make sure that the contract returns the correct magic value
     tokenReceiver.setReturnCorrectValue(True);
     # Now do the transfer
-    txn_receipt = token.safeTransferFrom(me, tokenReceiver.address, tokenID, hexbytes.HexBytes(""), {"from": me});
+    txn_receipt = token.safeTransferFrom(me, tokenReceiver.address, tokenID, hexbytes.HexBytes(data), {"from": me});
     # check owner of NFT
     assert(tokenReceiver.address == token.ownerOf(tokenID));
     # Check balances
@@ -331,6 +332,8 @@ def test_safeTransferFrom(token, tokenReceiver):
     # get current invocation count of test contract
     newInvocationCount = tokenReceiver.getInvocationCount();
     assert(oldInvocationCount + 1 == newInvocationCount);
+    # Check that data has been stored
+    assert(tokenReceiver.getData() == data);
     # Verify that an Transfer event has been logged
     _verifyTransferEvent(txn_receipt, me, tokenReceiver.address, tokenID);
 

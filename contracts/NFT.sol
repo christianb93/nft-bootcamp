@@ -321,14 +321,5 @@ contract NFT {
  */
 interface ERC721TokenReceiver
 {
-
-  function onERC721Received(
-    address _operator,
-    address _from,
-    uint256 _tokenId,
-    bytes calldata _data
-  )
-    external
-    returns(bytes4);
-
+  function onERC721Received(address, address, uint256, bytes calldata) external returns(bytes4);
 }
