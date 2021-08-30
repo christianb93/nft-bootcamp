@@ -105,7 +105,7 @@ def test_mint_notOwner(token):
     # Make sure that token does not yet exist
     token._burn(tokenID, {"from": me});
     # Try to mint
-    with brownie.reverts("Operation only allowed for the contract owner"):
+    with brownie.reverts("Sender not contract owner"):
         token._mint(tokenID, {"from": bob});
 
 #
@@ -145,7 +145,7 @@ def test_burn_notOwner(token):
     tokenID = 1;
     _ensureToken(token, tokenID, me);
     # Try to burn
-    with brownie.reverts("Operation only allowed for the contract owner"):
+    with brownie.reverts("Sender not contract owner"):
         token._burn(tokenID, {"from": bob});
 
 #
@@ -344,7 +344,7 @@ def test_safeTransferFrom_wrongMagicValue(token, tokenReceiver):
     # Make sure that the contract returns the wrong magic value
     tokenReceiver.setReturnCorrectValue(False);
     # Now do the transfer
-    with brownie.reverts("onERC721Received did not return expected value"):
+    with brownie.reverts("Did not return magic value"):
         token.safeTransferFrom(me, tokenReceiver.address, tokenID, hexbytes.HexBytes(""), {"from": me});
     # Reset behaviour of test contract
     tokenReceiver.setReturnCorrectValue(True);

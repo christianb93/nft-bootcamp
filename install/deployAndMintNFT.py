@@ -52,6 +52,7 @@ def assemble_spec(source):
     _,file = os.path.split(source);
     # Now assemble the spec - see 
     # https://docs.soliditylang.org/en/develop/using-the-compiler.html#compiler-input-and-output-json-description
+    # We do not use the standard 200 runs but a lower value in order to better optimize deployment cost
     spec = {
         "language": "Solidity",
         "sources": {
@@ -63,7 +64,8 @@ def assemble_spec(source):
         },
         "settings": {
             "optimizer": {
-                "enabled": True
+                "enabled": True,
+                "runs": 10
             },
             "outputSelection": {
                 "*": {

@@ -38,15 +38,17 @@ contract NFT {
     /// implement ERC721Receiver
     bytes4 private constant magicValue = 0x150b7a02;
 
+    /// Interface IDs
+    bytes4 private constant erc165InterfaceID = 0x01ffc9a7;
+    bytes4 private constant erc721InterfaceID = 0x80ac58cd;
+    bytes4 private constant erc721metadataID = 0x5b5e139f;
+
+
     /// The owner of the contract
     address private _contractOwner;
 
-    /// Name and symbol of the contract
-    string private constant _name = "Non-fungible token";
-    string private constant _symbol = "MNFT";
-
     /// The base URI
-    string private  _baseURI = "";
+    string private _baseURI;
 
     /// The owner of each token
     mapping (uint256 => address) private _ownerOf;
@@ -60,13 +62,13 @@ contract NFT {
     /// Keep track of operators
     mapping (address => mapping(address => bool)) private _isOperatorFor;
 
-    /// Interface IDs
-    bytes4 private constant erc165InterfaceID = 0x01ffc9a7;
-    bytes4 private constant erc721InterfaceID = 0x80ac58cd;
-    bytes4 private constant erc721metadataID = 0x5b5e139f;
+    /// Name and symbol of the contract
+    string private constant _name = "Non-fungible token";
+    string private constant _symbol = "MNFT";
+
 
     /// Messages
-    string private constant _requiresOwner = "Operation only allowed for the contract owner";
+    string private constant _requiresOwner = "Sender not contract owner";
     string private constant _invalidTokenID = "Invalid token ID";
     string private constant _invalidAddress = "Address 0 is not valid";
     string private constant _senderNotAuthorized = "Sender not authorized";
@@ -188,7 +190,7 @@ contract NFT {
         if (_isContract(to)) {
             ERC721TokenReceiver erc721Receiver = ERC721TokenReceiver(to);
             bytes4 retval = erc721Receiver.onERC721Received(operator, from, tokenID, data);
-            require(retval == magicValue, "onERC721Received did not return expected value");
+            require(retval == magicValue, "Did not return magic value");
         }
     }
 
