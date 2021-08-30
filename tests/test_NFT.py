@@ -12,11 +12,11 @@ from brownie import NFT, ERC721TokenReceiverImplementation, accounts, exceptions
 # * run brownie test
 #
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def token():
     return accounts[0].deploy(NFT, "https://localhost:3000/");
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def tokenReceiver():
     return accounts[0].deploy(ERC721TokenReceiverImplementation);
 
