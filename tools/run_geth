@@ -1,0 +1,8 @@
+#!/bin/bash
+geth --dev \
+     --datadir=$HOME/.ethereum \
+     --http \
+     --http.corsdomain="*" \
+     --http.vhosts="*" \
+     --http.addr="0.0.0.0" \
+     --http.api="eth"
