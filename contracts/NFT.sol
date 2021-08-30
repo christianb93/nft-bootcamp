@@ -36,34 +36,40 @@ contract NFT {
 
     /// magic value returned by a contract
     /// implement ERC721Receiver
-    bytes4 internal constant magicValue = 0x150b7a02;
+    bytes4 private constant magicValue = 0x150b7a02;
 
     /// The owner of the contract
-    address internal _contractOwner;
+    address private _contractOwner;
 
     /// Name and symbol of the contract
-    string internal constant _name = "Non-fungible token";
-    string internal constant _symbol = "MNFT";
+    string private constant _name = "Non-fungible token";
+    string private constant _symbol = "MNFT";
 
     /// The base URI
-    string internal  _baseURI = "";
+    string private  _baseURI = "";
 
     /// The owner of each token
-    mapping (uint256 => address) _ownerOf;
+    mapping (uint256 => address) private _ownerOf;
 
     /// The balance of NFT for each address
-    mapping (address => uint256) _balances;
+    mapping (address => uint256) private _balances;
 
     /// Keep track of approvals per tokenID
-    mapping (uint256 => address) _approvals; 
+    mapping (uint256 => address) private _approvals; 
 
     /// Keep track of operators
-    mapping (address => mapping(address => bool)) _isOperatorFor;
+    mapping (address => mapping(address => bool)) private _isOperatorFor;
 
     /// Interface IDs
-    bytes4 internal constant erc165InterfaceID = 0x01ffc9a7;
-    bytes4 internal constant erc721InterfaceID = 0x80ac58cd;
-    bytes4 internal constant erc721metadataID = 0x5b5e139f;
+    bytes4 private constant erc165InterfaceID = 0x01ffc9a7;
+    bytes4 private constant erc721InterfaceID = 0x80ac58cd;
+    bytes4 private constant erc721metadataID = 0x5b5e139f;
+
+    /// Messages
+    string private constant _requiresOwner = "Operation only allowed for the contract owner";
+    string private constant _invalidTokenID = "Invalid token ID";
+    string private constant _invalidAddress = "Address 0 is not valid";
+    string private constant _senderNotAuthorized = "Sender not authorized";
 
     ///
     /// Constructor - remember who the contract owner is and assign initial balance
@@ -74,13 +80,31 @@ contract NFT {
         _contractOwner = msg.sender;
     }
 
+    /// Modifier to check that the sender of the msg is the 
+    /// contract owner
+
+    modifier isContractOwner() {
+        require(msg.sender == _contractOwner, _requiresOwner);
+        _;
+    }
+
+    /// Modifier to check that a token ID is valid
+    modifier isValidToken(uint256 _tokenID) {
+        require(_ownerOf[_tokenID] != address(0), _invalidTokenID);
+        _;
+    }
+
+    /// Modifier to check that an address is valid
+    modifier isValidAddress(address _address) {
+        require(_address != address(0), _invalidAddress);
+        _;
+    }
 
     /// Return the count of all NFTs assigned to an owner. Throw
     /// if the queried address is 0
     /// @param owner An address for whom to query the balance
     /// @return The number of NFTs owned by `owner`, possibly zero
-    function balanceOf(address owner) external view returns (uint256) {
-        require(owner != address(0), "Address 0 is not valid");
+    function balanceOf(address owner) external view isValidAddress(owner) returns (uint256) {
         return _balances[owner];
     }
 
@@ -88,25 +112,26 @@ contract NFT {
     /// the token is considered invalid and we throw
     /// @param tokenID The identifier for an NFT
     /// @return The address of the owner of the NFT
-    function ownerOf(uint256 tokenID) external view returns (address) {
-        address owner = _ownerOf[tokenID];
-        require(owner != address(0), "This token does not exist");
-        return owner;
+    function ownerOf(uint256 tokenID) external view isValidToken(tokenID) returns (address)  {
+        return _ownerOf[tokenID];
     }
 
     /// Mint a token. This is a non-standard extension.
-    function _mint(uint256 tokenID) external {
-        require(_ownerOf[tokenID]==address(0), "Token already exists");
-        require(msg.sender == _contractOwner, "Only owner can mint");
+    function _mint(uint256 tokenID) external isContractOwner {
+        require(_ownerOf[tokenID] == address(0), "Token already exists");
         _balances[_contractOwner] +=1;
         _ownerOf[tokenID] = _contractOwner;
         /// Emit event
         emit Transfer(address(0), _contractOwner, tokenID);
     }
 
-    // Burn a token
-    function _burn(uint256 tokenID) external {
-        require(msg.sender == _contractOwner, "Only owner can burn token");
+    /// Burn a token. Do nothing if the token does not exist instead
+    /// of reverting, so that we can use this to make sure that a token
+    /// does not exist. 
+    /// IMPORTANT: the contract owner can burn EVERY token, regardless
+    /// of who the current owner is - this is nothing you would accept
+    /// for a real NFT. DO NOT DO THIS IN PRODUCTION
+    function _burn(uint256 tokenID) external isContractOwner {
         address owner = _ownerOf[tokenID];
         if (owner == address(0)) {
             return;
@@ -127,18 +152,16 @@ contract NFT {
     /// @param to The new owner
     /// @param tokenID The NFT to transfer
     function transferFrom(address from, address to, uint256 tokenID) external payable {
-        doTransferFrom(from, to, tokenID);
+        _doTransferFrom(from, to, tokenID);
     }
 
-    function doTransferFrom(address from, address to, uint256 tokenID) internal {
+    function _doTransferFrom(address from, address to, uint256 tokenID) private isValidToken(tokenID) isValidAddress(to) {
         address currentOwner = _ownerOf[tokenID];
-        require(currentOwner != address(0), "Invalid token ID");
-        require(to != address(0), "Cannot send to zero address");
         require(from == currentOwner, "From not current owner");
         bool authorized = (msg.sender == from) 
                             || (_approvals[tokenID] == msg.sender) 
                             || (_isOperatorFor[currentOwner][msg.sender]);
-        require(authorized, "Sender not authorized");
+        require(authorized, _senderNotAuthorized);
         _balances[currentOwner]-=1;
         _balances[to]+=1;
         _ownerOf[tokenID] = to;
@@ -152,7 +175,7 @@ contract NFT {
         emit Transfer(from, to, tokenID);
     }
 
-    function isContract(address addr) private view returns (bool){
+    function _isContract(address addr) private view returns (bool){
         uint32 size;
         assembly {
             size := extcodesize(addr)
@@ -161,8 +184,8 @@ contract NFT {
     }
 
 
-    function invokeOnERC721Received(address to, address operator, address from, uint256 tokenID, bytes memory data) private {
-        if (isContract(to)) {
+    function _invokeOnERC721Received(address to, address operator, address from, uint256 tokenID, bytes memory data) private {
+        if (_isContract(to)) {
             ERC721TokenReceiver erc721Receiver = ERC721TokenReceiver(to);
             bytes4 retval = erc721Receiver.onERC721Received(operator, from, tokenID, data);
             require(retval == magicValue, "onERC721Received did not return expected value");
@@ -181,8 +204,8 @@ contract NFT {
     /// @param tokenID The NFT to transfer
     /// @param data Additional data with no specified format, sent in call to `_to`
     function safeTransferFrom(address from, address to, uint256 tokenID, bytes memory data) external payable {
-        doTransferFrom(from, to, tokenID);
-        invokeOnERC721Received(to, msg.sender, from, tokenID, data);
+        _doTransferFrom(from, to, tokenID);
+        _invokeOnERC721Received(to, msg.sender, from, tokenID, data);
     }
 
     /// This works identically to the other function with an extra data parameter,
@@ -191,8 +214,8 @@ contract NFT {
     /// @param to The new owner
     /// @param tokenID The NFT to transfer
     function safeTransferFrom(address from, address to, uint256 tokenID) external payable {
-        doTransferFrom(from, to, tokenID);
-        invokeOnERC721Received(to, msg.sender, from, tokenID, bytes(""));
+        _doTransferFrom(from, to, tokenID);
+        _invokeOnERC721Received(to, msg.sender, from, tokenID, bytes(""));
     }
 
     /// Change or reaffirm the approved address for an NFT
@@ -201,12 +224,11 @@ contract NFT {
     /// operator of the current owner.
     /// @param approved The new approved NFT controller
     /// @param tokenID The NFT to approve
-    function approve(address approved, uint256 tokenID) external payable {
+    function approve(address approved, uint256 tokenID) external payable isValidToken(tokenID) {
         address currentOwner = _ownerOf[tokenID];
-        require(currentOwner != address(0), "Invalid tokenID");
         bool authorized = (msg.sender == currentOwner) 
                            || (_isOperatorFor[currentOwner][msg.sender]);
-        require(authorized, "Sender not authorized");
+        require(authorized, _senderNotAuthorized);
         _approvals[tokenID] = approved;
         emit Approval(_ownerOf[tokenID], approved, tokenID);
     }
@@ -215,8 +237,7 @@ contract NFT {
     /// Throws if `tokenID` is not a valid NFT.
     /// @param tokenID The NFT to find the approved address for
     /// @return The approved address for this NFT, or the zero address if there is none
-    function getApproved(uint256 tokenID) external view returns (address) {
-        require(_ownerOf[tokenID] != address(0), "Invalid tokenID");
+    function getApproved(uint256 tokenID) external view isValidToken(tokenID) returns (address) {
         return _approvals[tokenID];
     }
 
@@ -259,7 +280,7 @@ contract NFT {
         return _symbol;
     }
 
-    function toString(uint256 value) internal pure returns (string memory) {
+    function _toString(uint256 value) private pure returns (string memory) {
         /// taken from OpenZeppelin 
         /// https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Strings.sol
         /// MIT licensed
@@ -283,9 +304,8 @@ contract NFT {
 
     /// A distinct Uniform Resource Identifier (URI) for a given asset.
     /// Throws if `tokenID` is not a valid NFT. 
-    function tokenURI(uint256 tokenID) external view returns (string memory) {
-        require(_ownerOf[tokenID] != address(0), "Not a valid token ID");
-        return string(abi.encodePacked(_baseURI, toString(tokenID)));
+    function tokenURI(uint256 tokenID) external view isValidToken(tokenID) returns (string memory) {
+        return string(abi.encodePacked(_baseURI, _toString(tokenID)));
     }
 
     /// A non-standard function to retrieve the baseURI

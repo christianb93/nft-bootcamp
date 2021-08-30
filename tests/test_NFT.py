@@ -105,7 +105,7 @@ def test_mint_notOwner(token):
     # Make sure that token does not yet exist
     token._burn(tokenID, {"from": me});
     # Try to mint
-    with brownie.reverts("Only owner can mint"):
+    with brownie.reverts("Operation only allowed for the contract owner"):
         token._mint(tokenID, {"from": bob});
 
 #
@@ -145,7 +145,7 @@ def test_burn_notOwner(token):
     tokenID = 1;
     _ensureToken(token, tokenID, me);
     # Try to burn
-    with brownie.reverts("Only owner can burn token"):
+    with brownie.reverts("Operation only allowed for the contract owner"):
         token._burn(tokenID, {"from": bob});
 
 #
@@ -156,7 +156,7 @@ def test_ownerOf_invalidTokenID(token):
     tokenID = 1;
     token._burn(tokenID, {"from": me});
     # Try to call ownerOf
-    with brownie.reverts("This token does not exist"):
+    with brownie.reverts("Invalid token ID"):
         token.ownerOf(tokenID);
 
 
@@ -204,7 +204,7 @@ def test_transferFrom_toZeroAddress(token):
     tokenID = 1;
     _ensureToken(token, tokenID, me);
     # Now do the transfer
-    with brownie.reverts("Cannot send to zero address"):
+    with brownie.reverts("Address 0 is not valid"):
         token.transferFrom(me, "0x"+40*"0", tokenID, {"from": me});
 
 #
@@ -426,10 +426,10 @@ def test_approval(token):
     # Make sure that token does not yet exist
     token._burn(tokenID);
     # Get approval - should raise
-    with brownie.reverts("Invalid tokenID"):
+    with brownie.reverts("Invalid token ID"):
         token.getApproved(tokenID);
     # Approve - should raise
-    with brownie.reverts("Invalid tokenID"):
+    with brownie.reverts("Invalid token ID"):
         token.approve(bob, tokenID, {"from": me});
     # Mint
     token._mint(tokenID, {"from": me});
@@ -573,7 +573,7 @@ def test_tokenURI(token):
     # Make sure that token does not yet exist
     token._burn(tokenID, {"from": me});
     # Try to get tokenURI of invalid token - should raise exception
-    with brownie.reverts("Not a valid token ID"):
+    with brownie.reverts("Invalid token ID"):
         token.tokenURI(tokenID);
     # Mint
     token._mint(tokenID, {"from": me});
@@ -592,7 +592,7 @@ def test_tokenURI_idzero(token):
     # Make sure that token does not yet exist
     token._burn(tokenID, {"from": me});
     # Try to get tokenURI of invalid token - should raise exception
-    with brownie.reverts("Not a valid token ID"):
+    with brownie.reverts("Invalid token ID"):
         token.tokenURI(tokenID);
     # Mint
     token._mint(tokenID, {"from": me});
