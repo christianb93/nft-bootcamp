@@ -5,4 +5,4 @@ geth --dev \
      --http.corsdomain="*" \
      --http.vhosts="*" \
      --http.addr="0.0.0.0" \
-     --http.api="eth"
+     --http.api="eth,web3"
