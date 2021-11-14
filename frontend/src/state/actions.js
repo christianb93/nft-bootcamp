@@ -1,0 +1,37 @@
+const actions = {
+    types: {
+        STORE_ACCOUNTS: "STORE_ACCOUNTS",
+        STORE_CREDENTIALS: "STORE_CREDENTIALS",
+        SET_PRIMARY_ACCOUNT: "SET_PRIMARY_ACCOUNT",
+        ADD_TO_WATCHLIST: "ADD_TO_WATCHLIST",
+        SET_WATCHLIST: "SET_WATCHLIST",
+        REMOVE_FROM_WATCHLIST: "REMOVE_FROM_WATCHLIST",
+        ADD_TRANSACTION: "ADD_TRANSACTION",
+        UPDATE_TRANSACTION: "UPDATE_TRANSACTION",
+        DELETE_TRANSACTION: "DELETE_TRANSACTION",
+        CHAIN_EVENT_NOTIFICATION: "CHAIN_EVENT_NOTIFICATION",
+        SET_ERROR: "SET_ERROR",
+        CLEAR_ERROR:"CLEAR_ERROR",
+        SET_URL: "SET_URL",
+        SET_WALLET_LOADED: "SET_WALLET_LOADED",
+        SET_WATCHLIST_LOADED: "SET_WATCHLIST_LOADED",
+
+    },
+    storeAccounts : (payload) => ( { type: actions.types.STORE_ACCOUNTS, payload}),
+    storeCredentials : (payload) => ( { type: actions.types.STORE_CREDENTIALS, payload}),
+    setPrimaryAccount: (payload) => ( { type: actions.types.SET_PRIMARY_ACCOUNT, payload}),
+    addTransaction: (payload) => ( { type: actions.types.ADD_TRANSACTION, payload}),
+    updateTransaction: (payload) => ( { type: actions.types.UPDATE_TRANSACTION, payload}),
+    deleteTransaction: (payload) => ( { type: actions.types.DELETE_TRANSACTION, payload}),
+    chainEvent: () => ({ type: actions.types.CHAIN_EVENT_NOTIFICATION}),
+    setError: (payload) => ({ type: actions.types.SET_ERROR, payload}),
+    clearError: () => ({ type: actions.types.CLEAR_ERROR}),
+    setUrl: (payload) => ({ type: actions.types.SET_URL, payload}),
+    addToWatchlist: (payload) => ({ type: actions.types.ADD_TO_WATCHLIST, payload}),
+    setWatchlist: (payload) => ({ type: actions.types.SET_WATCHLIST, payload}),
+    removeFromWatchlist: (payload) => ({ type: actions.types.REMOVE_FROM_WATCHLIST, payload}),
+    setWalletLoaded: (payload) => ({ type: actions.types.SET_WALLET_LOADED, payload}),
+    setWatchlistLoaded: (payload) => ({ type: actions.types.SET_WATCHLIST_LOADED, payload}),
+}
+
+export default actions;
