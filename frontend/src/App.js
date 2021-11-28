@@ -27,7 +27,8 @@ function App() {
     // and saved token
     if (refresh) {
       window.localStorage.removeItem(constants.storageKeys.WALLET);
-      window.localStorage.removeItem(constants.storageKeys.URL); 
+      window.localStorage.removeItem(constants.storageKeys.TOKEN); 
+      window.localStorage.removeItem(constants.storageKeys.WATCHLIST); 
     }
     switchUrl(url);
   }
