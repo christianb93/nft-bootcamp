@@ -63,7 +63,7 @@ function TokenDetails(props) {
         reason = "You have not selected a primary account in the wallet. To sell, you first need to select a primary account";
     }
     else {
-        if (primaryAccount !== owner) {
+        if ((primaryAccount !== owner) && (toAddress !== "")) {
             canSell = false;
             reason = "You have selected a primary account, but this account is not currently owning the token, so you cannot sell it"
         }
@@ -165,7 +165,7 @@ function TokenDetails(props) {
                         id="sell-token" 
                         className="btn btn-primary" 
                         onClick={sellToken}
-                        disabled={!canSell}>
+                        disabled={!canSell || (toAddress === "")}>
                             Sell token
                     </button>
                     <input 
